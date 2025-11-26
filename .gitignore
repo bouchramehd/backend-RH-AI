@@ -1,21 +1,27 @@
-# Environment
+# Virtual environment
 venv/
-.env
+ENV/
+env/
 
 # Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# SQLite DB (si tu veux la garder locale seulement)
+# SQLite DB
 *.sqlite3
 
-# Media uploads (CVs)
+# Uploaded media
 media/
 
-# IDE files
+# IDE
 .vscode/
 .idea/
 
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Env variables
+.env
