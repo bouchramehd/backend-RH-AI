@@ -13,18 +13,26 @@ def extract_text_from_pdf(pdf_path):
 
 def score_cv_with_ollama(cv_text, job_description):
     prompt = f"""
-    You are an HR expert.
+You are a senior HR recruiter.
 
-    Evaluate how relevant this CV is for the job description.
+Your task is to evaluate how relevant this CV is for the following job description.
 
-    Job Description:
-    {job_description}
+### JOB DESCRIPTION
+{job_description}
 
-    CV:
-    {cv_text}
+### CANDIDATE CV
+{cv_text}
 
-    Answer with ONLY a number between 0 and 100.
-    """
+### SCORING GRID (0 to 100)
+- 0–30: Very weak match (profile is off-topic or has almost no required skills)
+- 31–50: Weak match (some relevant elements but largely insufficient)
+- 51–70: Average match (junior or incomplete profile, could fit with training)
+- 71–85: Good match (most key requirements are present)
+- 86–100: Excellent match (profile is highly aligned with the job)
+
+Give ONLY a single number between 0 and 100 with no extra text.
+For example: 42 or 67.5 or 90
+"""
 
     response = requests.post(
         "http://localhost:11434/api/generate",
@@ -32,6 +40,9 @@ def score_cv_with_ollama(cv_text, job_description):
             "model": "llama3",
             "prompt": prompt,
             "stream": False,
+            "options": {
+                "temperature": 0.1  # more deterministic, less random
+            },
         },
         timeout=120,
     )
