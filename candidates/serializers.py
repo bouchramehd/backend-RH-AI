@@ -15,3 +15,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
         model = Application
         fields = "__all__"
         read_only_fields = ("score", "status")
+
+class ApplicationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Application
+        fields = ["status"]

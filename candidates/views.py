@@ -2,7 +2,8 @@ from rest_framework import generics, permissions
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.exceptions import PermissionDenied
 from .models import JobOffer, Application
-from .serializers import JobOfferSerializer, ApplicationSerializer
+from .serializers import JobOfferSerializer, ApplicationSerializer, ApplicationStatusSerializer
+from rest_framework.authentication import SessionAuthentication
 from ml_app.ollama_service import extract_text_from_pdf, score_cv_with_ollama
 
 
@@ -80,3 +81,23 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         application.score = score
         application.status = "in_review"
         application.save()
+
+class ApplicationStatusUpdateView(generics.UpdateAPIView):
+    queryset = Application.objects.all()
+    serializer_class = ApplicationStatusSerializer
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == "admin":
+            return Application.objects.all()
+        if user.role == "recruiter":
+            return Application.objects.filter(job__recruiter=user)
+        return Application.objects.none()
+
+    def perform_update(self, serializer):
+        if self.request.user.role not in ["recruiter", "admin"]:
+            raise PermissionDenied("Action interdite.")
+        serializer.save()
