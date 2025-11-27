@@ -15,3 +15,17 @@ class ApplicationSerializer(serializers.ModelSerializer):
         model = Application
         fields = "__all__"
         read_only_fields = ("score", "status")
+        
+class ApplicationStatusSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(
+        choices=[
+            ("in_review", "In review"),
+            ("accepted", "Accepted"),
+            ("rejected", "Rejected"),
+        ]
+    )
+
+    class Meta:
+        model = Application
+        fields = ["status"]
+

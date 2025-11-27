@@ -1,10 +1,11 @@
 from rest_framework import generics, permissions
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 from .models import JobOffer, Application
-from .serializers import JobOfferSerializer, ApplicationSerializer
-from ml_app.ollama_service import extract_text_from_pdf, score_cv_with_ollama
-
+from .serializers import ApplicationStatusSerializer, JobOfferSerializer, ApplicationSerializer
+from ml_app.ollama_service import extract_text_from_pdf
+from ml_app.hf_service import score_cvs_batch  # <- version batch
 
 # ---------------------
 # Offres d'emploi
@@ -71,12 +72,41 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role != "candidate":
+        if user.role not in ["candidate", "admin"]:
             raise PermissionDenied("Seul un candidat peut postuler.")
+
+        # Sauvegarde initiale
         application = serializer.save(candidate=user)
+
+        # Extraction du texte du CV
         cv_text = extract_text_from_pdf(application.cv_file.path)
-        job_description = application.job.description
-        score = score_cv_with_ollama(cv_text, job_description)
-        application.score = score
+
+        # Utilisation du batch même pour un seul CV
+        scores = score_cvs_batch([cv_text], application.job.description)
+        application.score = scores[0]
         application.status = "in_review"
         application.save()
+
+class ApplicationStatusUpdateView(generics.UpdateAPIView):
+    queryset = Application.objects.all()
+    serializer_class = ApplicationStatusSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
+    http_method_names = ["patch", "get"]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == "admin":
+            return Application.objects.all()
+
+        if user.role == "recruiter":
+            return Application.objects.filter(job__recruiter=user)
+
+        return Application.objects.none()
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role not in ["recruiter", "admin"]:
+            raise PermissionDenied("Action interdite.")
+        serializer.save()
