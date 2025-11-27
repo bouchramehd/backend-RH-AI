@@ -45,9 +45,11 @@ INSTALLED_APPS = [
     'notifications',
     'dashboard',
     'ml_app',
+    'corsheaders',
 ]
 AUTH_USER_MODEL = "accounts.User"
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -144,3 +146,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
 }
+
+# === Configuration CORS ===
+CORS_ALLOW_ALL_ORIGINS = True  # développement uniquement
+CORS_ALLOW_CREDENTIALS = True  # si tu veux envoyer les cookies avec les requêtes
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+    "accept",
+    "origin",
+    "x-csrftoken",
+]
