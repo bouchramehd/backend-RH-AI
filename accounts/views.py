@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
@@ -10,5 +10,6 @@ class RegisterView(generics.CreateAPIView):
 
 # Connexion (JWT)
 class LoginView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
     renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
