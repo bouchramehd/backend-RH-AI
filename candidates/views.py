@@ -1,28 +1,35 @@
 from rest_framework import generics, permissions
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.exceptions import PermissionDenied
 from .models import JobOffer, Application
 from .serializers import JobOfferSerializer, ApplicationSerializer
 from ml_app.ollama_service import extract_text_from_pdf, score_cv_with_ollama
 
 
-# List all job offers / create job offers
 class JobOfferListCreateView(generics.ListCreateAPIView):
     queryset = JobOffer.objects.all()
     serializer_class = JobOfferSerializer
-    permission_classes = [permissions.AllowAny]  # later: restrict to recruiter
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # lecture publique, création protégée
+    renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
+
+    def perform_create(self, serializer):
+        if self.request.user.role != "recruiter":
+            raise PermissionDenied("Seul un recruteur peut créer une offre.")
+        serializer.save(recruiter=self.request.user)
 
 
-# Retrieve / update / delete a job offer
 class JobOfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = JobOffer.objects.all()
     serializer_class = JobOfferSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # lecture publique, modification uniquement pour connectés
+    renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
 
 
-# List & submit applications
 class ApplicationListCreateView(generics.ListCreateAPIView):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
-    permission_classes = [permissions.AllowAny]  # later: candidate only
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # lecture publique, candidature protégée
+    renderer_classes = [BrowsableAPIRenderer, JSONRenderer]
 
     def perform_create(self, serializer):
         # 1. Save the application first

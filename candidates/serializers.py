@@ -5,6 +5,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOffer
         fields = "__all__"
+        read_only_fields = ("recruiter",)  # le recruteur est assigné automatiquement
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
