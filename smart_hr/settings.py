@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 
@@ -84,8 +85,12 @@ WSGI_APPLICATION = 'smart_hr.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'rhai',
+        'USER': 'user',
+        'PASSWORD': 'password',
+        'HOST': '151.80.147.12',
+        'PORT': '5432',
     }
 }
 
@@ -157,3 +162,8 @@ CORS_ALLOW_HEADERS = [
     "origin",
     "x-csrftoken",
 ]
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=9),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+}

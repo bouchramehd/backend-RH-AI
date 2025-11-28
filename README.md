@@ -84,6 +84,7 @@ venv/Scripts/activate
 
 ```
 pip install django djangorestframework pypdf requests python-dotenv
+pip install psycopg2-binary
 ```
 
 ### 3. Migrer la base de données
